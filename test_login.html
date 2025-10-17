@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>登录测试页面</h1>
+    
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="username">邮箱:</label>
+            <input type="email" id="username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="return_url">返回URL:</label>
+            <input type="text" id="return_url" name="return_url" value="/oauth/authorize?client_id=PhdyJRYj-app-7342570&redirect_uri=https://yourgame.com/&response_type=code&state=test123&scope=read">
+        </div>
+        
+        <button type="submit">测试登录</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        // SHA256 哈希函数
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const returnUrl = document.getElementById('return_url').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // 对密码进行SHA256哈希
+                const hashedPassword = await sha256(password);
+                
+                // 创建表单数据
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', hashedPassword);
+                formData.append('return_url', returnUrl);
+                
+                console.log('提交登录请求...');
+                console.log('用户名:', username);
+                console.log('返回URL:', returnUrl);
+                
+                // 使用fetch提交
+                const response = await fetch('/oauth/login', {
+                    method: 'POST',
+                    body: formData,
+                    redirect: 'manual' // 手动处理重定向
+                });
+                
+                console.log('响应状态:', response.status);
+                console.log('响应头:', response.headers);
+                
+                if (response.status === 302) {
+                    // 重定向成功
+                    const location = response.headers.get('Location');
+                    console.log('重定向到:', location);
+                    
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>登录成功!</h3>
+                        <p>状态码: ${response.status}</p>
+                        <p>重定向到: ${location}</p>
+                        <p><a href="${location}" target="_blank">点击继续</a></p>
+                    `;
+                } else if (response.ok) {
+                    // 其他成功状态
+                    const text = await response.text();
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>请求成功!</h3>
+                        <p>状态码: ${response.status}</p>
+                        <p>响应内容: ${text}</p>
+                    `;
+                } else {
+                    // 登录失败
+                    const errorText = await response.text();
+                    console.error('登录失败:', errorText);
+                    
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>登录失败!</h3>
+                        <p>状态码: ${response.status}</p>
+                        <p>错误信息: ${errorText}</p>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('请求错误:', error);
+                
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>网络错误!</h3>
+                    <p>错误信息: ${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
