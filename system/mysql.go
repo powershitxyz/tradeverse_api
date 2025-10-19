@@ -1,12 +1,15 @@
 package system
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"chaos/api/config"
 	log "chaos/api/log"
+
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -75,4 +78,12 @@ func init() {
 
 func GetDb() *gorm.DB {
 	return DB
+}
+
+func QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	rawDB, err := DB.DB() // GORM 的底层 *sql.DB
+	if err != nil {
+		return nil, err
+	}
+	return rawDB.QueryContext(ctx, query, args...)
 }
