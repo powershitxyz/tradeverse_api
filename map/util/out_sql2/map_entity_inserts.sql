@@ -1,0 +1,1 @@
+-- INSERTs for map_entity (map_id=main_world)
