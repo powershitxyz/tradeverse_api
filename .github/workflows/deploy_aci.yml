@@ -17,7 +17,7 @@ jobs:
       ACR_NAME: ${{ secrets.ACR_NAME }}
       ACI_RG: ${{ secrets.ACI_RG }}
       ACI_NAME: ${{ secrets.ACI_NAME }}
-      APP_PORT: ${{ secrets.APP_PORT }}
+      APP_PORT: 18080
       ACI_DNS_LABEL: ${{ secrets.ACI_DNS_LABEL }} # 可空
 
     steps:
@@ -64,8 +64,7 @@ jobs:
       - name: Deploy to ACI
         run: |
           set -euo pipefail
-
-          PORT=18080
+          PORT="${{ env.APP_PORT }}"
           RG="${{ secrets.ACI_RG }}"
           ACI_NAME="${{ secrets.ACI_NAME }}"
           DNS_LABEL="${{ secrets.ACI_DNS_LABEL }}"
@@ -96,6 +95,8 @@ jobs:
             --os-type Linux \
             --ip-address Public \
             --ports $PORT \
+            --cpu 1 \
+            --memory 1.5 \
             --registry-login-server "$LOGIN_SERVER" \
             --registry-username "$USERNAME" \
             --registry-password "$PASSWORD" \
