@@ -63,29 +63,23 @@ jobs:
       #    - 先删再建（最简单可靠）
       - name: Deploy to ACI
         run: |
-          echo "Deploying image: $IMAGE"
-          az container delete -g "$ACI_RG" -n "$ACI_NAME" --yes || true
+          RG="${{ secrets.ACI_RG }}"
+          ACI_NAME="${{ secrets.ACI_NAME }}"
+          DNS_LABEL="${{ secrets.ACI_DNS_LABEL }}"
+          PORT=18080
 
-          # 如果你不想要 FQDN，就把 --dns-name-label 这行删掉
-          DNS_ARG=""
-          if [ -n "$ACI_DNS_LABEL" ]; then
-            DNS_ARG="--dns-name-label $ACI_DNS_LABEL"
-          fi
+          az container delete -g "$RG" -n "$ACI_NAME" --yes || true
 
           az container create \
-            -g "$ACI_RG" \
+            -g "$RG" \
             -n "$ACI_NAME" \
             --image "$IMAGE" \
-            --ip-address Public \
-            --ports "$APP_PORT" \
-            --registry-login-server "${{ steps.acrls.outputs.login_server }}" \
+            --registry-login-server "${{ secrets.ACR_LOGIN_SERVER }}" \
             --registry-username "${{ steps.acr.outputs.username }}" \
             --registry-password "${{ steps.acr.outputs.password }}" \
-            --restart-policy Always \
-            $DNS_ARG
+            --dns-name-label "$DNS_LABEL" \
+            --ports $PORT \
+            --environment-variables DALINK_GO_CONFIG_PATH=/app/config/dev.yml \
+            --restart-policy Always
 
-          echo "Public IP:"
-          az container show -g "$ACI_RG" -n "$ACI_NAME" --query ipAddress.ip -o tsv
-
-          echo "FQDN (if any):"
-          az container show -g "$ACI_RG" -n "$ACI_NAME" --query ipAddress.fqdn -o tsv
+          az container show -g "$RG" -n "$ACI_NAME" --query ipAddress.ip -o tsv
