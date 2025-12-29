@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("starting...")
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Warn("Error loading .env file")
 	}
 
 	// 创建主上下文和取消函数

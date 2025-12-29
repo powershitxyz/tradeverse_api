@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /app/server /app/server
 COPY config /app/config
-COPY .env /app/.env
+# COPY .env /app/.env
 
 EXPOSE 18080
 
