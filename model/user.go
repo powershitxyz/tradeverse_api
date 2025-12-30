@@ -19,7 +19,7 @@ type UserMain struct {
 }
 
 func (UserMain) TableName() string {
-	return "n_user_main"
+	return TB_USER_MAIN
 }
 
 type UserProvider struct {
@@ -32,7 +32,7 @@ type UserProvider struct {
 }
 
 func (UserProvider) TableName() string {
-	return "n_user_provider"
+	return TB_USER_PROVIDER
 }
 
 type UserProfile struct {
@@ -48,7 +48,7 @@ type UserProfile struct {
 }
 
 func (UserProfile) TableName() string {
-	return "n_user_profile"
+	return TB_USER_PROFILE
 }
 
 type VerificationProcess struct {
@@ -64,7 +64,7 @@ type VerificationProcess struct {
 }
 
 func (VerificationProcess) TableName() string {
-	return "n_verification_process"
+	return TB_USER_VERIFICATION_PROCESS
 }
 
 type UserRef struct {
@@ -75,5 +75,5 @@ type UserRef struct {
 }
 
 func (UserRef) TableName() string {
-	return "n_user_ref"
+	return TB_USER_REF
 }

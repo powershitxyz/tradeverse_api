@@ -14,12 +14,10 @@ import (
 func Routers(e *gin.RouterGroup) {
 
 	homeGroup := e.Group("/")
-	homeGroup.GET("public", home.Public)
-	homeGroup.POST("/maps/:mapId/viewport", home.GetMapViewport)
-	homeGroup.POST("/maps/:mapId/assemble", home.MapTMJ)
+	homeGroup.GET("public/config", home.Public)
 
-	homeGroup.GET("home/game", home.Game)
-	homeGroup.GET("home/game/:game_id", home.GameDetail)
+	homeGroup.GET("public/game", home.Game)
+	homeGroup.GET("public/game/:game_id", home.GameDetail)
 	homeGroup.GET("home/season", home.Season)
 
 	homeGroup.GET("leaderboard/:season_code", home.Leaderboard)

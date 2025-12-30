@@ -20,7 +20,7 @@ type SysChannel struct {
 }
 
 func (SysChannel) TableName() string {
-	return "sys_channel"
+	return TB_SYS_CHANNEL
 }
 
 func (t *SysChannel) Verify(data, sig string) (bool, int) {
@@ -38,16 +38,4 @@ func (t *SysChannel) Verify(data, sig string) (bool, int) {
 		return false, codes.CODE_ERR_AUTHTOKEN_FAIL
 	}
 	return true, codes.CODE_SUCCESS
-}
-
-type SysDes struct {
-	ID         int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Desk       string    `gorm:"column:desk" json:"desk"`
-	Desv       string    `gorm:"column:desv" json:"desv"`
-	UpdateTime time.Time `gorm:"column:update_time" json:"update_time"`
-	Flag       int       `gorm:"column:flag" json:"flag"`
-}
-
-func (SysDes) TableName() string {
-	return "sys_des"
 }

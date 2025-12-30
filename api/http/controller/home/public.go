@@ -60,7 +60,7 @@ func Leaderboard(c *gin.Context) {
 	if len(season_code) > 0 {
 		db.Model(&model.SeasonInfo{}).Where("code = ?", season_code).First(&season)
 	} else {
-		err := db.Table("n_season_info s").
+		err := db.Table("season_info s").
 			Where("s.status = ?", []string{model.SeasonStatusActive}).
 			Where("s.is_visible = ?", model.SeasonIsVisible).
 			Order("id desc").
@@ -138,7 +138,7 @@ func LeaderboardGame(c *gin.Context) {
 	if len(season_code) > 0 {
 		db.Model(&model.SeasonInfo{}).Where("code = ?", season_code).First(&season)
 	} else {
-		err := db.Table("n_season_info s").
+		err := db.Table("season_info s").
 			Where("s.status = ?", []string{model.SeasonStatusActive}).
 			Where("s.is_visible = ?", model.SeasonIsVisible).
 			Order("id desc").
@@ -229,13 +229,13 @@ func Game(c *gin.Context) {
 	db := system.GetDb()
 	var games []model.GameWithTags
 
-	err := db.Table("n_game_info g").
+	err := db.Table("game_info g").
 		Select(`
         g.*,
         COALESCE(JSON_ARRAYAGG(c.name), JSON_ARRAY()) AS tags
     `).
-		Joins("LEFT JOIN n_game_tag gt ON gt.game_id = g.id").
-		Joins("LEFT JOIN n_game_category c ON c.id = gt.cat_id").
+		Joins("LEFT JOIN game_tag gt ON gt.game_id = g.id").
+		Joins("LEFT JOIN game_category c ON c.id = gt.cat_id").
 		Where("g.status IN ?", []string{model.GameStatusActive, model.GameStatusWaitingOnline}).
 		Group("g.id").
 		Limit(200).
@@ -277,13 +277,13 @@ func GameDetail(c *gin.Context) {
 	db := system.GetDb()
 	var game model.GameWithTags
 
-	err = db.Table("n_game_info g").
+	err = db.Table("game_info g").
 		Select(`
         g.*,
         COALESCE(JSON_ARRAYAGG(c.name), JSON_ARRAY()) AS tags
     `).
-		Joins("LEFT JOIN n_game_tag gt ON gt.game_id = g.id").
-		Joins("LEFT JOIN n_game_category c ON c.id = gt.cat_id").
+		Joins("LEFT JOIN game_tag gt ON gt.game_id = g.id").
+		Joins("LEFT JOIN game_category c ON c.id = gt.cat_id").
 		Where("g.id = ? and g.status IN ?", gameID, []string{model.GameStatusActive, model.GameStatusWaitingOnline}).
 		Group("g.id").
 		First(&game).Error
@@ -297,15 +297,15 @@ func GameDetail(c *gin.Context) {
 
 	// query game developer information
 	var gameDeveloper model.GameDeveloper
-	err = db.Table("n_game_developer gd").Where("gd.id = ?", game.DevID).First(&gameDeveloper).Error
+	err = db.Table("game_developer gd").Where("gd.id = ?", game.DevID).First(&gameDeveloper).Error
 	if err != nil {
 		log.Error("load game developer info error", err)
 	}
 
 	// query game season information
-	var gameSeason model.SeasonInfo
-	err = db.Table("n_season_info s").
-		Joins("LEFT JOIN n_season_game sg ON s.id = sg.season_id").
+	var gameSeason *model.SeasonInfo
+	err = db.Table("season_info s").
+		Joins("LEFT JOIN season_game sg ON s.id = sg.season_id").
 		Where("s.status = ?", model.SeasonStatusActive).
 		Where("sg.game_id = ?", gameID).
 		Order("s.id desc").
@@ -339,7 +339,7 @@ func Season(c *gin.Context) {
 	db := system.GetDb()
 	var season model.SeasonInfo
 
-	err := db.Table("n_season_info s").
+	err := db.Table("season_info s").
 		Where("s.status = ?", []string{model.SeasonStatusActive}).
 		Where("s.is_visible = ?", model.SeasonIsVisible).
 		Order("id desc").
@@ -351,7 +351,7 @@ func Season(c *gin.Context) {
 	}
 
 	var games []model.GameWithSeason
-	err = db.Table("n_game_info g").Joins("LEFT JOIN n_season_game sg ON g.id = sg.game_id").
+	err = db.Table("game_info g").Joins("LEFT JOIN season_game sg ON g.id = sg.game_id").
 		Where("sg.season_id = ?", season.ID).
 		Where("g.status IN ?", []string{model.GameStatusActive, model.GameStatusWaitingOnline}).
 		Select("g.*, sg.season_id as season_id").

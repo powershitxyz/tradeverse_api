@@ -41,7 +41,7 @@ type GameDeveloper struct {
 }
 
 func (GameDeveloper) TableName() string {
-	return "n_game_developer"
+	return TB_GAME_DEVELOPER
 }
 
 type GameInfo struct {
@@ -58,14 +58,12 @@ type GameInfo struct {
 }
 
 func (GameInfo) TableName() string {
-	return "n_game_info"
+	return TB_GAME_INFO
 }
 
 type GameApp struct {
-	ID     uint64 `gorm:"column:id;primary_key;auto_increment"`
-	GameID uint64 `gorm:"column:game_id" json:"game_id"`
-	// AppID  string `gorm:"column:app_id" json:"app_id"`
-	// AppSecret     string    `gorm:"column:app_secret" json:"app_secret"`
+	ID            uint64    `gorm:"column:id;primary_key;auto_increment"`
+	GameID        uint64    `gorm:"column:game_id" json:"game_id"`
 	AddTime       time.Time `gorm:"column:add_time" json:"add_time"`
 	ClientID      string    `gorm:"column:client_id" json:"client_id"`
 	ClientSecret  string    `gorm:"column:client_secret" json:"client_secret"`
@@ -73,7 +71,7 @@ type GameApp struct {
 }
 
 func (GameApp) TableName() string {
-	return "n_game_app"
+	return TB_GAME_APP
 }
 
 type GameSetting struct {
@@ -87,9 +85,27 @@ type GameSetting struct {
 }
 
 func (GameSetting) TableName() string {
-	return "n_game_setting"
+	return TB_GAME_SETTING
 }
 
+type GameSession struct {
+	SessionID       string          `gorm:"column:session_id;primary_key" json:"session_id"`
+	GameID          uint64          `gorm:"column:game_id" json:"game_id"`
+	MainID          uint64          `gorm:"column:main_id" json:"-"`
+	StartTime       time.Time       `gorm:"column:start_time" json:"start_time"`
+	EndTime         time.Time       `gorm:"column:end_time" json:"end_time"`
+	Status          int             `gorm:"column:status" json:"status"`
+	Score           decimal.Decimal `gorm:"column:score" json:"score"`
+	UserReportScore decimal.Decimal `gorm:"column:user_report_score" json:"user_report_score"`
+	SpendAmountN    uint64          `gorm:"column:spend_amount_n" json:"spend_amount_n"`
+	Testing         int             `gorm:"column:testing" json:"testing"`
+}
+
+func (GameSession) TableName() string {
+	return TB_GAME_SESSION
+}
+
+// ////////////////////////////////////////////////////////////////////////////////////////
 type SeasonInfo struct {
 	ID                  uint64     `gorm:"column:id;primary_key;auto_increment"`
 	Title               string     `gorm:"column:title" json:"title"`
@@ -114,7 +130,7 @@ type SeasonInfo struct {
 }
 
 func (SeasonInfo) TableName() string {
-	return "n_season_info"
+	return TB_SEASON_INFO
 }
 
 type SeasonUser struct {
@@ -125,7 +141,7 @@ type SeasonUser struct {
 }
 
 func (SeasonUser) TableName() string {
-	return "n_season_user"
+	return TB_SEASON_USER
 }
 
 type SeasonSessionBoard struct {
@@ -139,7 +155,7 @@ type SeasonSessionBoard struct {
 }
 
 func (SeasonSessionBoard) TableName() string {
-	return "n_season_session_board"
+	return TB_SEASON_SESSION_BOARD
 }
 
 type SeasonGame struct {
@@ -151,24 +167,7 @@ type SeasonGame struct {
 }
 
 func (SeasonGame) TableName() string {
-	return "n_season_game"
-}
-
-type GameSession struct {
-	SessionID       string          `gorm:"column:session_id;primary_key" json:"session_id"`
-	GameID          uint64          `gorm:"column:game_id" json:"game_id"`
-	MainID          uint64          `gorm:"column:main_id" json:"-"`
-	StartTime       time.Time       `gorm:"column:start_time" json:"start_time"`
-	EndTime         time.Time       `gorm:"column:end_time" json:"end_time"`
-	Status          int             `gorm:"column:status" json:"status"`
-	Score           decimal.Decimal `gorm:"column:score" json:"score"`
-	UserReportScore decimal.Decimal `gorm:"column:user_report_score" json:"user_report_score"`
-	SpendAmountN    uint64          `gorm:"column:spend_amount_n" json:"spend_amount_n"`
-	Testing         int             `gorm:"column:testing" json:"testing"`
-}
-
-func (GameSession) TableName() string {
-	return "n_game_session"
+	return TB_SEASON_GAME
 }
 
 /*********************** TODO ***********************/
