@@ -34,11 +34,6 @@ func Routers(e *gin.RouterGroup) {
 	preAuthGroup.POST("/developer/verify", preauth.DeveloperVerify)
 
 	authGroup := e.Group("/auth", interceptor.TokenInterceptor())
-	authGroup.GET("/chaos/query", auth.QueryAmount)
-	authGroup.POST("/chaos/trans/submit", auth.SubmitTrans)
-
-	authGroup.GET("/n/airdrop/query", auth.QueryN)
-	authGroup.GET("/n/airdrop/proof", auth.QueryNProof)
 
 	authGroup.GET("/user/profile", auth.Profile)
 	authGroup.POST("/user/profile", auth.UpdateProfile)
