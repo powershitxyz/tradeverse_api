@@ -86,6 +86,16 @@ jobs:
             DNS_ARGS+=(--dns-name-label "$DNS_LABEL")
           fi
 
+          # ---- build DNS label args ----
+          DNS_ARGS=()
+          if [ -n "$DNS_LABEL" ]; then
+            DNS_ARGS+=(--dns-name-label "$DNS_LABEL")
+          fi
+
+          # ---- credentials.json as secret file ----
+          printf '%s' '${{ secrets.GMAIL_CREDENTIAL }}' > credentials.json
+          CRED_CONTENT="$(cat credentials.json)"
+
           az container create \
             -g "$RG" \
             -n "$ACI_NAME" \
@@ -112,7 +122,7 @@ jobs:
               DATABASE_PWD='${{ secrets.DATABASE_PWD }}' \
               GMAIL_APP_PWD='${{ secrets.GMAIL_APP_PWD }}' \
             --secrets \
-              credentials.json='${{ secrets.GMAIL_CREDENTIAL_JSON }}' \
+              credentials.json="$CRED_CONTENT" \
             --secrets-mount-path /mnt/secrets \
             --log-analytics-workspace "$LOG_WORKSPACE_ID" \
             --log-analytics-workspace-key "$LOG_PRIMARY_KEY" \
