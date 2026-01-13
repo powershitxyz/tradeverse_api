@@ -15,6 +15,7 @@ func Routers(e *gin.RouterGroup) {
 
 	homeGroup := e.Group("/")
 	homeGroup.GET("public/config", home.Public)
+	homeGroup.GET("public/assets", home.Assets)
 
 	homeGroup.GET("public/game", home.Game)
 	homeGroup.GET("public/game/:game_id", home.GameDetail)

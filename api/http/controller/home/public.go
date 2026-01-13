@@ -48,6 +48,27 @@ func Public(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func Assets(c *gin.Context) {
+	res := common.Response{}
+	res.Timestamp = time.Now().Unix()
+
+	res.Code = codes.CODE_SUCCESS
+	res.Msg = "success"
+
+	db := system.GetDb()
+	var assets []model.SysAsset
+	err := db.Find(&assets).Error
+	if err != nil {
+		log.Error("load assets error", err)
+	}
+
+	res.Data = gin.H{
+		"assets": assets,
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
 /*********************** TODO ***********************/
 func Leaderboard(c *gin.Context) {
 	res := common.Response{}
