@@ -21,7 +21,9 @@ import (
 
 func main() {
 	log.Info("starting...")
-
+	os.Setenv("OKX_API_KEY", "41a7e5f0-a650-4a49-bbb1-fc28d7489047")
+	os.Setenv("OKX_SECRET_KEY", "DA2DBC087E43F33B55ADFCDBBF5ABEF5")
+	os.Setenv("OKX_API_PASSPHRASE", "@Aa147258")
 	// 创建主上下文和取消函数
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
