@@ -201,6 +201,11 @@ func init() {
 		log.Println("reset db host:", dbp)
 		systemConfig.Database.Host = dbp
 	}
+	if len(systemConfig.Database.DBName) == 0 {
+		dbp := os.Getenv("DATABASE_NAME")
+		log.Println("reset db name:", dbp)
+		systemConfig.Database.DBName = dbp
+	}
 	if len(systemConfig.Database.User) == 0 {
 		dbp := os.Getenv("DATABASE_USER")
 		log.Println("reset db user:", dbp)
@@ -218,6 +223,7 @@ func init() {
 		}
 		systemConfig.Database.Port = port
 	}
+
 	initRpcs(systemConfig.Chain)
 
 	system.InitLogger(systemConfig.Log.Path)

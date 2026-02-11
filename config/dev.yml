@@ -34,7 +34,7 @@ database:
   port: 
   user: 
   password: 
-  dbname: tradeverse_db_main
+  dbname: 
   sslmode: disable
   TimeZone: Asia/Shanghai
 
