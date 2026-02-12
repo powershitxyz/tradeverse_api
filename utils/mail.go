@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -77,37 +78,85 @@ func SendVerifyCodeMail(toEmail, sort string) error {
 	return nil
 }
 
+func readPathOrContent(envKey string) ([]byte, string, error) {
+	v := strings.TrimSpace(os.Getenv(envKey))
+	if v == "" {
+		return nil, "", fmt.Errorf("%s not set", envKey)
+	}
+
+	// 1) 如果是文件路径，且存在，就读文件
+	// 支持相对路径 -> 转绝对
+	p := v
+	if !filepath.IsAbs(p) {
+		wd, _ := os.Getwd()
+		p = filepath.Join(wd, p)
+	}
+	if fi, err := os.Stat(p); err == nil && !fi.IsDir() {
+		b, err := os.ReadFile(p)
+		return b, p, err
+	}
+
+	// 2) 如果看起来像 JSON，直接当内容
+	if strings.HasPrefix(v, "{") || strings.HasPrefix(v, "[") {
+		return []byte(v), "<inline>", nil
+	}
+
+	// 3) 可选：支持 base64（建议你变量名用 *_B64）
+	// 你也可以只在 envKey 以 _B64 结尾时才尝试，避免误判。
+	if b, err := base64.StdEncoding.DecodeString(v); err == nil && len(b) > 0 {
+		trim := strings.TrimSpace(string(b))
+		if strings.HasPrefix(trim, "{") || strings.HasPrefix(trim, "[") {
+			return []byte(trim), "<base64>", nil
+		}
+	}
+
+	return nil, "", errors.New("value is neither an existing file path nor valid json/base64 json")
+}
+
 // 读取 Gmail API 服务（基于 credentials.json + token.json）
 func gmailService(ctx context.Context) (*gmail.Service, error) {
-	credPath := os.Getenv("GMAIL_CREDENTIAL")
-	if credPath == "" {
-		return nil, fmt.Errorf("GMAIL_CREDENTIAL not set")
-	}
-	credBytes, err := os.ReadFile(credPath)
+	// ✅ 兼容：GMAIL_CREDENTIAL 既可以是文件路径，也可以直接是 json 内容 / base64
+	credBytes, credSrc, err := readPathOrContent("GMAIL_CREDENTIAL")
 	if err != nil {
-		return nil, fmt.Errorf("read credentials: %w", err)
+		return nil, err
 	}
+
 	cfg, err := google.ConfigFromJSON(credBytes, gmail.GmailSendScope)
 	if err != nil {
-		return nil, fmt.Errorf("parse credentials: %w", err)
+		return nil, fmt.Errorf("parse credentials (%s): %w", credSrc, err)
 	}
 
-	// 默认 token.json 放在 credentials 同目录
-	tokenPath := os.Getenv("GMAIL_TOKEN")
-	if tokenPath == "" {
-		tokenPath = filepath.Join(filepath.Dir(credPath), "token.json")
-	}
-	tb, err := os.ReadFile(tokenPath)
-	if err != nil {
-		return nil, fmt.Errorf("read token.json: %w (generate it once via OAuth)", err)
-	}
+	// token 优先走 env（路径/内容/base64），否则回退到 “和 cred 同目录 token.json”
 	var tok oauth2.Token
-	if err := json.Unmarshal(tb, &tok); err != nil {
-		return nil, fmt.Errorf("parse token.json: %w", err)
+	if strings.TrimSpace(os.Getenv("GMAIL_TOKEN")) != "" {
+		tb, tokSrc, err := readPathOrContent("GMAIL_TOKEN")
+		if err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(tb, &tok); err != nil {
+			return nil, fmt.Errorf("parse token (%s): %w", tokSrc, err)
+		}
+	} else {
+		// 回退：cred 如果来自文件路径，则用同目录 token.json
+		if credSrc == "<inline>" || credSrc == "<base64>" {
+			return nil, fmt.Errorf("GMAIL_TOKEN not set and credential is inline, cannot infer token.json path")
+		}
+		tokenPath := filepath.Join(filepath.Dir(credSrc), "token.json")
+		tb, err := os.ReadFile(tokenPath)
+		if err != nil {
+			return nil, fmt.Errorf("read token.json: %w (generate it once via OAuth)", err)
+		}
+		if err := json.Unmarshal(tb, &tok); err != nil {
+			return nil, fmt.Errorf("parse token.json: %w", err)
+		}
 	}
-	ts := cfg.TokenSource(ctx, &tok)
 
-	return gmail.NewService(ctx, option.WithTokenSource(ts))
+	client := oauth2.NewClient(ctx, cfg.TokenSource(ctx, &tok))
+	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return nil, err
+	}
+	return srv, nil
 }
 
 // 用 Gmail API 发送验证码邮件（替代 SMTP 版本）
