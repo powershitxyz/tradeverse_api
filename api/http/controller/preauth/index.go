@@ -302,14 +302,13 @@ func Register(c *gin.Context) {
 
 	var existRef model.UserRef
 	if len(req.Ref) > 0 {
-		db.Model(&model.UserRef{}).Where("ref_code = ?", req.Ref).First(&existRef)
-	}
-	log.Info("existRef: ", existRef)
-	if existRef.ID == 0 {
-		res.Code = codes.CODE_ERR_PROCESSING
-		res.Msg = "referral code not found"
-		c.JSON(http.StatusOK, res)
-		return
+		db.Where("ref_code = ?", req.Ref).First(&existRef)
+		if existRef.ID == 0 {
+			res.Code = codes.CODE_ERR_PROCESSING
+			res.Msg = "referral code not found"
+			c.JSON(http.StatusOK, res)
+			return
+		}
 	}
 
 	if userInfo.ID == 0 {
