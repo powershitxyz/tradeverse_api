@@ -24,6 +24,9 @@ func Routers(e *gin.RouterGroup) {
 	homeGroup.GET("leaderboard/:season_code", home.Leaderboard)
 	homeGroup.GET("leaderboard/:season_code/game/:game_id", home.LeaderboardGame)
 
+	homeGroup.GET("companies", home.CompanyList)
+	homeGroup.GET("chart/:symbol", home.ChartBySymbol)
+
 	preAuthGroup := e.Group("/preauth")
 	preAuthGroup.POST("get_msg", preauth.GetAuthMsg)
 	preAuthGroup.POST("verify_msg", preauth.VerifyMessage)
